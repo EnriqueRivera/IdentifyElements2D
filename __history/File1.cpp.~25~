@@ -1,0 +1,50 @@
+
+#include <stdio.h>       //inlclude para usar getChar()
+#include <vector>
+
+#include "Elements2D.h"
+#include "TotalPoints2D.h"
+#include "Subdomains2D.h"
+#include "Boundaries2D.h"
+
+#include "time.h"
+
+int main(void)
+{
+	clock_t inicio;
+
+	Elements2D elements;
+	std::vector<BezierCurve2D*>bezs;
+	std::vector<Ellipse2D*>ellips;
+	std::vector<Polygon2D*>polys;
+	std::vector<Segment2D*>segms;
+	std::vector<Point2D*>pts;
+
+	// -------------------------------------------------------------------------
+
+	//---------------------------------------------------------------------------------------
+	elements.setPoints(pts);
+	elements.setSegments(segms);
+	elements.setPolygons(polys);
+	elements.setEllipses(ellips);
+	elements.setBeziers(bezs);
+	//--------------------------------------------------------------------------------------
+
+	inicio = clock();
+
+	std::vector<Point2D*> totalPoints = total_points_2D::TotalPoints2D::obtainTotalPoints(elements);
+	std::cout << "Points = " << totalPoints.size() << "\t->\tTiempo transcurrido (segundos): " << (clock() - inicio)/(double)CLOCKS_PER_SEC << std::endl;
+
+	inicio = clock();
+	std::vector<Polygon2D*> subdomains = subdomains_2D::Subdomains2D::obtainSubdomains(elements);
+	std::cout << "Subdomains = " << subdomains.size() << "\t->\tTiempo transcurrido (segundos): " << (clock() - inicio)/(double)CLOCKS_PER_SEC << std::endl;
+
+	inicio = clock();
+	std::vector<Vector2D*> boundaries = boundaries_2D::Boundaries2D::obtainBoundaries(totalPoints, subdomains, elements);
+	//std::vector<Vector2D*> boundaries = boundaries_2D::Boundaries2D::obtainBoundaries(elements);
+	std::cout << "Boundaries = " << boundaries.size() << "\t->\tTiempo transcurrido (segundos): " << (clock() - inicio)/(double)CLOCKS_PER_SEC << std::endl;
+
+   getchar(); //para que no se cierre la consola
+
+	return 0;
+}

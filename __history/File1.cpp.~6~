@@ -1,0 +1,59 @@
+
+#include <stdio.h>       //getChar()
+#include <vector>
+
+#include "Elements2D.h"
+#include "TotalPoints2D.h"
+#include "Subdomains2D.h"
+//#include "Boundaries2D.h"
+
+#include "time.h"
+//#include "clipper.hpp"
+
+using std::cout;
+using std::endl;
+
+int main(void)
+{
+	clock_t inicio;
+
+	Elements2D elements;
+	std::vector<BezierCurve2D*>bezs;
+	std::vector<Ellipse2D*>ellips;
+	std::vector<Polygon2D*>polys;
+	std::vector<Segment2D*>segms;
+	std::vector<Point2D*>pts;
+
+   	// -------------------------------------------------------------------------
+	std::vector<Point2D*> pBezy1;
+	pBezy1.push_back(new Point2D(-30, 0));
+	pBezy1.push_back(new Point2D(-3, 38));
+	pBezy1.push_back(new Point2D(30, -23));
+	pBezy1.push_back(new Point2D(41, 4));
+	BezierCurve2D *b1 = new BezierCurve2D(pBezy1);
+	bezs.push_back(b1);
+	//---------------------------------------------------------------------------------------
+	elements.setPoints(pts);
+	elements.setSegments(segms);
+	elements.setPolygons(polys);
+	elements.setEllipses(ellips);
+	elements.setBeziers(bezs);
+	//--------------------------------------------------------------------------------------
+
+	inicio = clock();
+	std::vector<Point2D*> totalPoints = total_points_2D::TotalPoints2D::obtainTotalPoints(elements);
+	cout << "Points = " << totalPoints.size() << "\t->\tTiempo transcurrido (segundos): " << (clock() - inicio)/(double)CLOCKS_PER_SEC << endl;
+
+	/*inicio = clock();
+	std::vector<Polygon2D*> subdomains = subdomains_2D::Subdomains2D::obtainSubdomains(elements);
+	cout << "Subdomains = " << subdomains.size() << "\t->\tTiempo transcurrido (segundos): " << (clock() - inicio)/(double)CLOCKS_PER_SEC << endl;
+
+	inicio = clock();
+	std::vector<Vector2D*> boundaries = boundaries_2D::Boundaries2D::obtainBoundaries(totalPoints, subdomains, elements);
+	cout << "Boundaries = " << boundaries.size() << "\t->\tTiempo transcurrido (segundos): " << (clock() - inicio)/(double)CLOCKS_PER_SEC << endl;
+	  */
+	getchar();
+
+	return 0;
+}
+

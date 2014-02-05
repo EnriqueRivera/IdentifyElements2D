@@ -1,0 +1,90 @@
+#ifndef BEZIER_CURVE_2D_H
+#define BEZIER_CURVE_2D_H
+
+#include <vector>
+#include "Point2D.h"
+#include "Polygon2D.h"
+#include "agg_curves.h"
+
+enum Degree 
+{
+	DEGREE2 = 2,		
+	DEGREE3 = 3
+};
+
+class BezierCurve2D
+{
+	public:
+		inline BezierCurve2D(std::vector<Point2D*> controlPoints) : controlPoints(controlPoints) 
+		{
+			calculateApproach();
+		}
+
+		inline Polygon2D* getPolyApproach() 
+		{
+			return polyApproach;
+		}
+
+		inline std::vector<Point2D*> getCtrlPts() 
+		{
+			return controlPoints;
+		}
+
+		inline int getCtrlPtsCount() 
+		{
+			return controlPoints.size();
+		}
+
+		inline Degree getDegree() 
+		{
+			return controlPoints.size() == 3 ? DEGREE2 : DEGREE3;
+		}
+
+	private:
+		std::vector<Point2D*> controlPoints;
+		Polygon2D* polyApproach;
+
+		void calculateApproach() 
+		{
+
+			//Calcular la escala
+			int scale = 100;
+
+			if (getDegree() == DEGREE2)
+			{
+				agg::curve3_div bezierGrade2(controlPoints[0]->getX(), controlPoints[0]->getY(),
+										     controlPoints[1]->getX(), controlPoints[1]->getY(),
+											 controlPoints[2]->getX(), controlPoints[2]->getY(),
+											 scale);
+				std::vector<Point2D*> pointsApproach;
+
+				size_t size = bezierGrade2.get_m_points().size();
+				for (size_t i = 0; i < size; i++)
+				{
+					pointsApproach.push_back(new Point2D(bezierGrade2.get_m_points()[i].x, bezierGrade2.get_m_points()[i].y));
+				}
+
+				polyApproach = new Polygon2D(pointsApproach);
+			}
+			else 
+			{
+				agg::curve4_div bezierGrade3(controlPoints[0]->getX(), controlPoints[0]->getY(),
+										     controlPoints[1]->getX(), controlPoints[1]->getY(),
+											 controlPoints[2]->getX(), controlPoints[2]->getY(),
+											 controlPoints[3]->getX(), controlPoints[3]->getY(),
+											 scale);
+				std::vector<Point2D*> pointsApproach;
+
+				size_t size = bezierGrade3.get_m_points().size();
+				for (size_t i = 0; i < size; i++)
+				{
+					pointsApproach.push_back(new Point2D(bezierGrade3.get_m_points()[i].x, 
+															bezierGrade3.get_m_points()[i].y));
+				}
+
+				polyApproach = new Polygon2D(pointsApproach);
+			}
+		}
+};
+
+#endif

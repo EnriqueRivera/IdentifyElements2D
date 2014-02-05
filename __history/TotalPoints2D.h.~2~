@@ -1,0 +1,337 @@
+#ifndef TOTAL_POINTS_2D_H
+#define TOTAL_POINTS_2D_H
+
+#include <vector>
+#include <algorithm>	 //std::sort
+#include "Point2D.h"
+#include "Segment2D.h"
+#include "Polygon2D.h"
+#include "Ellipse2D.h"
+#include "BezierCurve2D.h"
+#include "Intersections2D.h"
+#include "Elements2D.h"
+
+#include <iostream>      //ofstream myfile
+#include <fstream>       //ofstream myfile;
+
+namespace total_points_2D
+{
+	class TotalPoints2D
+	{
+		private:
+			static void sortAndLinkPoints(Point2D* &p1, Point2D* &p2)
+			{
+				sort_points::sortPointsX(p1, p2);
+
+				p1->setEndPointType(P1);
+				p2->setEndPointType(P2);
+
+				p1->setNextPoint(p2);
+				p2->setNextPoint(p1);
+			}
+
+			static void fillEqWithSegments(std::vector<Segment2D*> segments, std::vector<Point2D*> &EQ)
+			{
+				Point2D *p1, *p2;
+				size_t size = segments.size();
+				for (size_t i = 0; i < size; i++)
+				{
+					p1 = segments[i]->getP1();
+					p2 = segments[i]->getP2();
+
+					sortAndLinkPoints(p1, p2);
+
+					EQ.push_back(p1);
+					EQ.push_back(p2);
+				}
+			}
+
+			static void fillEqWithPolys(Polygon2D* poly, std::vector<Point2D*> &EQ)
+			{
+				std::vector<Point2D*> contour = poly->getCountour();
+				size_t size = contour.size();
+				Point2D *p1, *p2;
+				for (size_t i = 0; i < size; i++)
+				{
+					p1 = contour[i];
+					p2 = contour[(i == (size - 1)) ? 0 : i + 1];
+
+					if (p1->getEndPointType() != NONE)
+					{
+						p1 = new Point2D(p1->getX(), p1->getY());
+					}
+
+					if (p2->getEndPointType() != NONE)
+					{
+						p2 = new Point2D(p2->getX(), p2->getY());
+					}
+
+					sortAndLinkPoints(p1, p2);
+
+					EQ.push_back(p1);
+					EQ.push_back(p2);
+				}
+
+				size = poly->getHoles().size();
+				for (size_t i = 0; i < size; i++)
+				{
+					fillEqWithPolys(poly->getHoles()[i], EQ);
+				}
+			}
+
+			static bool sortPoints(Point2D *p1, Point2D *p2)
+			{
+				return
+					isLowerThan(p1->getX(), p2->getX()) ? true :
+					isGreaterThan(p1->getX(), p2->getX()) ? false :
+					isLowerThan(p1->getY(), p2->getY());
+			}
+
+			static void eraseWithID(int id, std::vector<Point2D*> &list)
+			{
+				size_t size = list.size();
+				for (size_t i = 0; i < size; i++)
+				{
+					if (list[i]->getIdSweepLine() == id)
+					{
+						list.erase(list.begin() + i);
+						break;
+					}
+				}
+			}
+
+			static bool addPointInVector(Point2D *p, std::vector<Point2D*> &list)
+			{
+				bool addPoint = true;
+				size_t size = list.size();
+
+				if (list.empty())
+				{
+					list.push_back(p);
+					return true;
+				}
+				else
+				{
+					for (size_t i = 0; i < size; i++)
+					{
+						if (isGreaterThan(list[i]->getX(), p->getX()))
+						{
+							list.insert(list.begin() + i, p);
+							return true;
+						}
+
+						if (isEqual(p->getX(), list[i]->getX()) && isGreaterThan(list[i]->getY(), p->getY()))
+						{
+							list.insert(list.begin() + i, p);
+							return true;
+						}
+
+						if (p->equals(list[i]))
+						{
+							return false;
+						}
+
+						if (i == size - 1)
+						{
+							list.push_back(p);
+							return true;
+						}
+					}
+
+					return false;
+				}
+			}
+
+			static void obtainPointsPolygon(Polygon2D* poly, std::vector<Point2D*> &points)
+			{
+				size_t size = poly->getCountourSize();
+				for (size_t i = 0; i < size; i++)
+				{
+					addPointInVector(poly->getCountour()[i], points);
+				}
+
+				size = poly->getHolesCount();
+				for (size_t i = 0; i < size; i++)
+				{
+					obtainPointsPolygon(poly->getHoles()[i], points);
+				}
+			}
+
+			static void obtainPointsEllipse(Ellipse2D* elli, std::vector<Point2D*> &points)
+			{
+				size_t size = elli->getCtrlPtsCount();
+				for (size_t i = 0; i < size; i++)
+				{
+					addPointInVector(elli->getCtrlPts()[i], points);
+				}
+			}
+
+			static void obtainPointsBezier(BezierCurve2D* bez, std::vector<Point2D*> &points)
+			{
+				addPointInVector(bez->getCtrlPts()[0], points);
+				addPointInVector(bez->getCtrlPts()[bez->getCtrlPtsCount() - 1], points);
+			}
+
+			static void obtainPointsSegments(Segment2D* segment, std::vector<Point2D*> &points)
+			{
+				addPointInVector(segment->getP1(), points);
+				addPointInVector(segment->getP2(), points);
+			}
+
+			static void obtainPointsAndPolys(Elements2D elements, std::vector<Point2D*> &points, std::vector<Polygon2D*> &polys)
+			{
+				size_t size = elements.getPolyCount();
+				for (size_t i = 0; i < size; i++)
+				{
+					obtainPointsPolygon(elements.getPolygons()[i], points);
+					polys.push_back(elements.getPolygons()[i]);
+				}
+
+				size = elements.getElliCount();
+				for (size_t i = 0; i < size; i++)
+				{
+					obtainPointsEllipse(elements.getEllipses()[i], points);
+					polys.push_back(elements.getEllipses()[i]->getPolyApproach());
+				}
+
+				size = elements.getBezCount();
+				for (size_t i = 0; i < size; i++)
+				{
+					obtainPointsBezier(elements.getBeziers()[i], points);
+					polys.push_back(elements.getBeziers()[i]->getPolyApproach());
+				}
+
+				size = elements.getSegCount();
+				for (size_t i = 0; i < size; i++)
+				{
+					obtainPointsSegments(elements.getSegments()[i], points);
+				}
+
+				size = elements.getPtsCount();
+				for (size_t i = 0; i < size; i++)
+				{
+					addPointInVector(elements.getPoints()[i], points);
+				}
+			}
+
+			static void resetPointValues(std::vector<Point2D*> &points)
+			{
+				size_t size = points.size();
+				for (size_t i = 0; i < size; i++)
+				{
+					points[i]->setNextPoint(0);
+					points[i]->setEndPointType(NONE);
+					points[i]->setIdSweepLine(-1);
+				}
+			}
+
+			static void obtainRepeatedPoints(std::vector<Point2D*> contour, std::vector<Point2D*> &points, std::vector<Point2D*> &auxPoints)
+			{
+				size_t size = contour.size();
+				for (size_t i = 0; i < size; i++)
+				{
+					if (!addPointInVector(contour[i], auxPoints))
+					{
+						addPointInVector(contour[i], points);
+					}
+				}
+			}
+
+			static void obtainRepeatedPoints(Polygon2D *poly, std::vector<Point2D*> &points, std::vector<Point2D*> &auxPoints)
+			{
+				obtainRepeatedPoints(poly->getCountour(), points, auxPoints);
+
+				size_t sizeHoles = poly->getHolesCount();
+				for (size_t i = 0; i < sizeHoles; i++)
+				{
+					obtainRepeatedPoints(poly->getHoles()[i], points, auxPoints);
+				}
+			}
+
+			static void obtainRepeatedPoints(std::vector<Polygon2D*> polys, std::vector<Point2D*> &points)
+			{
+				std::vector<Point2D*> auxPoints;
+				size_t size = polys.size();
+				for (size_t i = 0; i < size; i++)
+				{
+					obtainRepeatedPoints(polys[i], points, auxPoints);
+				}
+			}
+
+		public:
+			static std::vector<Point2D*> obtainTotalPoints(Elements2D elements)
+			{
+				std::ofstream result;
+				result.open("Points.txt");
+				std::vector<Polygon2D*>polys;
+				std::vector<Point2D*> EQ, SL, points;
+
+				obtainPointsAndPolys(elements, points, polys);
+
+				//Esto es para cuando se intersecta una curva pero justamente en su P1 y P2
+				obtainRepeatedPoints(polys, points);
+
+				fillEqWithSegments(elements.getSegments(), EQ);
+
+				size_t size = polys.size();
+				for (size_t i = 0; i < size; i++)
+				{
+					fillEqWithPolys(polys[i], EQ);
+				}
+
+				std::sort(EQ.begin(), EQ.end(), sortPoints);
+
+				size = EQ.size();
+				for (size_t i = 0; i < size; i++)
+				{
+					EQ[i]->setIdSweepLine(i);
+				}
+
+				while (!EQ.empty())
+				{
+					if (EQ[0]->getEndPointType() == P2)
+					{
+						eraseWithID(EQ[0]->getNextPoint()->getIdSweepLine(), SL);
+						eraseWithID(EQ[0]->getIdSweepLine(), EQ);
+					}
+					else
+					{
+						SL.push_back(EQ[0]);
+						eraseWithID(EQ[0]->getIdSweepLine(), EQ);
+
+						Point2D* p;
+						int size = SL.size();
+						for (int i = (size - 2); i >= 0; i--)
+						{
+							p = intersection_2D::Intersection2D::lineIntersection(
+								SL[size - 1], SL[size - 1]->getNextPoint(),
+								SL[i], SL[i]->getNextPoint());
+
+							Point2D *p1 = SL[size - 1];
+							Point2D *p2 = SL[size - 1]->getNextPoint();
+							Point2D *p3 = SL[i];
+							Point2D *p4 = SL[i]->getNextPoint();
+
+							if (p)
+							{
+								addPointInVector(p, points);
+							}
+						}
+					}
+				}
+
+				resetPointValues(points);
+
+				result << "------------>Points: ("<< points.size() <<")<------------------" << std::endl;
+				for (size_t i = 0; i < points.size(); i++)
+				{
+					result << (i + 1) << ":" << std::endl;
+					result << *points[i] << std::endl << std::endl;;
+				}
+
+				return points;
+			}
+	};
+}
+
+#endif

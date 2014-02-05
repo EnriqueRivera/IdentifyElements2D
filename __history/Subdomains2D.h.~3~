@@ -1,0 +1,436 @@
+#ifndef SUBDOMAINS_2D_H
+#define SUBDOMAINS_2D_H
+
+#include <vector>
+#include "clipper.hpp"
+#include "Polygon2D.h"
+#include "Elements2D.h"
+#include "PointPolygon2D.h"
+
+using ClipperLib::IntPoint;
+using ClipperLib::Polygons;
+using ClipperLib::PolyTree;
+using ClipperLib::PolyNodes;
+using ClipperLib::Clipper;
+
+namespace subdomains_2D
+{
+	struct PolyLevel
+	{
+		public:
+			Polygons poly;
+			int level;
+
+			PolyLevel(Polygons poly, int level = 0) : poly(poly), level(level) {}
+	};
+
+	class Subdomains2D
+	{
+		private:
+			static void polyTreeToPolygons(PolyNodes nodes, std::vector<Polygons> &clippingResult, std::vector<ClipperLib::Polygon> &contours)
+			{
+				ClipperLib::Polygon polygon;
+
+				for (size_t i = 0; i < nodes.size(); i++) {
+					if (!nodes.at(i)->IsHole()) {
+
+						if (!contours.empty())
+						{
+							Polygons polygons(contours.size());
+							for (size_t j = 0; j < contours.size(); j++)
+							{
+								polygons[j] = contours[j];
+							}
+							clippingResult.push_back(polygons);
+							contours.clear();
+						}
+
+						for (size_t j = 0; j < nodes.at(i)->Contour.size(); j++) {
+							polygon.push_back(IntPoint(nodes.at(i)->Contour[j].X, nodes.at(i)->Contour[j].Y));
+						}
+
+						contours.push_back(polygon);
+
+						if (nodes.at(i)->Childs.size() > 0) {
+							polyTreeToPolygons(nodes.at(i)->Childs, clippingResult, contours);
+						}
+					}
+					else {
+						for (size_t j = 0; j < nodes.at(i)->Contour.size(); j++) {
+							polygon.push_back(IntPoint(nodes.at(i)->Contour[j].X, nodes.at(i)->Contour[j].Y));
+						}
+
+						contours.push_back(polygon);
+
+						if (nodes.at(i)->Childs.size() > 0) {
+							polyTreeToPolygons(nodes.at(i)->Childs, clippingResult, contours);
+						}
+					}
+				}
+
+				if (!contours.empty())
+				{
+					Polygons polygons(contours.size());
+					for (size_t j = 0; j < contours.size(); j++)
+					{
+						polygons[j] = contours[j];
+					}
+					clippingResult.push_back(polygons);
+					contours.clear();
+				}
+			}
+
+			static void doClipping(Polygons subj, Polygons clip, Polygons &polySolution, ClipperLib::ClipType boolOperation)
+			{
+				polySolution.clear();
+
+				Clipper c;
+
+				//c.ForceSimple(true);
+				c.AddPolygons(subj, ClipperLib::ptSubject);
+				c.AddPolygons(clip, ClipperLib::ptClip);
+				c.Execute(boolOperation, polySolution);
+			}
+
+			static bool clipping(Polygons subj, Polygons clip, std::vector<PolyLevel> &clippingResult)
+			{
+				Polygons polySolution;
+				std::vector<ClipperLib::Polygon> contours;
+
+				doClipping(subj, clip, polySolution, ClipperLib::ctIntersection);
+
+				if (!(polySolution.empty())) {
+					clippingResult.push_back(PolyLevel(polySolution));
+
+					doClipping(subj, clip, polySolution, ClipperLib::ctDifference);
+					if (!polySolution.empty())
+					{
+						clippingResult.push_back(PolyLevel(polySolution));
+					}
+
+					doClipping(clip, subj, polySolution, ClipperLib::ctDifference);
+					if (!polySolution.empty())
+					{
+						clippingResult.push_back(PolyLevel(polySolution));
+					}
+
+					return true;
+				}
+
+				return false;
+			}
+
+			static void identifySubdomains(std::vector<PolyLevel> &subdomains, int &level/*, std::ofstream &myfile*/)
+			{
+				std::vector<PolyLevel> clippingResult;
+				level++;
+
+				for (size_t i = 0; i < subdomains.size(); i++) {
+					for (size_t j = 0; j < subdomains.size(); j++) {
+						if ((i != j) && (((subdomains[i].level == 0) &&
+							(subdomains.at(j).level == 0)) || (subdomains.at(i).level < subdomains.at(j).level))) {
+
+							/*myfile << "---------->Figuras que haran el clipping:" << std::endl;
+							myfile << "(1)" << std::endl;
+							myfile << subdomains.at(i).poly << std::endl;
+							myfile << "(2)" << std::endl;
+							myfile << subdomains.at(j).poly << std::endl;*/
+
+							if (clipping(subdomains[i].poly, subdomains[j].poly, clippingResult))
+							{
+								/*myfile << "Level = " << level << std::endl;
+								myfile << "----->SI hubo clipping!!!\n--->Poligonos resultantes:" << std::endl;*/
+								if (i < j) {
+									subdomains.erase(subdomains.begin() + i);
+									subdomains.erase(subdomains.begin() + (j - 1));
+								}
+								else {
+									subdomains.erase(subdomains.begin() + j);
+									subdomains.erase(subdomains.begin() + (i - 1));
+								}
+
+								/*myfile << "---------->Poligonos a simplificar:<-------------" << std::endl;
+								for (int k = 0; k < clippingResult.size(); k++)
+								{
+									myfile << clippingResult[k].poly << std::endl;
+								}*/
+
+								simplifyPolygons(clippingResult);
+
+								/*myfile << "---------->Poligonos simplificados:<-------------" << std::endl;
+								for (int k = 0; k < clippingResult.size(); k++)
+								{
+									myfile << clippingResult[k].poly << std::endl;
+								}*/
+
+								size_t size = clippingResult.size();
+								for (size_t k = 0; k < size; k++)
+								{
+									//myfile << clippingResult[k] << std::endl;
+									clippingResult[k].level = level;
+									subdomains.push_back(clippingResult[k]);
+								}
+
+								identifySubdomains(subdomains, level/*, myfile*/);
+								goto finish;
+							}
+							//myfile << "NO hubo clipping!!!!" << std::endl;
+						}
+					}
+				}
+
+			finish: ;
+			}
+
+			static void polygon2DToPolygons(Polygon2D* polygon2D, std::vector<PolyLevel> &polygonsVector, const long long scale)
+			{
+				Polygons polygons(polygon2D->getHolesCount() + 1);
+				ClipperLib::Polygon polygon;
+				size_t size = polygon2D->getCountourSize();
+
+				for (size_t i = 0; i < size; i++) {
+					polygon.push_back(IntPoint(polygon2D->getCountour()[i]->getX() * scale,
+						polygon2D->getCountour()[i]->getY() * scale));
+				}
+				polygons[0] = polygon;
+
+				size = polygon2D->getHolesCount();
+				size_t sizeContour;
+				for (size_t i = 0; i < size; i++) {
+					polygon.clear();
+					sizeContour = polygon2D->getHoles()[i]->getCountourSize();
+					for (size_t j = 0; j < sizeContour; j++) {
+						polygon.push_back(IntPoint(polygon2D->getHoles()[i]->getCountour()[j]->getX() * scale,
+							polygon2D->getHoles()[i]->getCountour()[j]->getY() * scale));
+					}
+					polygons[i + 1] = polygon;
+				}
+
+				polygonsVector.push_back(PolyLevel(polygons));
+			}
+
+			static void elements2DToPolygons(Elements2D elements, std::vector<PolyLevel> &polygonsVector, const long long scale/*, std::ofstream &myfile*/)
+			{
+				//myfile << "Polygons2D iniciales:" << std::endl;
+				size_t size = elements.getPolyCount();
+				for (size_t i = 0; i < size; i++)
+				{
+					polygon2DToPolygons(elements.getPolygons()[i], polygonsVector, scale);
+					//myfile << *elements.getPolygons()[i] << std::endl;
+				}
+
+				size = elements.getElliCount();
+				for (size_t i = 0; i < size; i++)
+				{
+					polygon2DToPolygons(elements.getEllipses()[i]->getPolyApproach(), polygonsVector, scale);
+					//myfile << *(elements.getEllipses()[i]->getPolyApproach()) << std::endl;
+				}
+
+				size = elements.getBezCount();
+				for (size_t i = 0; i < size; i++)
+				{
+					polygon2DToPolygons(elements.getBeziers()[i]->getPolyApproach(), polygonsVector, scale);
+					//myfile << *elements.getBeziers()[i]->getPolyApproach() << std::endl;
+				}
+			}
+
+			static void polygonToPoints2D(ClipperLib::Polygon poly, std::vector<Point2D*> &polyPts)
+			{
+				size_t size = poly.size();
+				for (size_t i = 0; i < size; i++)
+				{
+					polyPts.push_back(new Point2D(poly[i].X, poly[i].Y));
+				}
+			}
+
+			static bool isPolyAHole(ClipperLib::Polygon poly1, ClipperLib::Polygon poly2)
+			{
+				std::vector<Point2D*> poly1Pts;
+				std::vector<Point2D*> poly2Pts;
+
+				polygonToPoints2D(poly1, poly1Pts);
+				polygonToPoints2D(poly2, poly2Pts);
+
+				Polygon2D *poly2D = new Polygon2D(poly1Pts);
+
+				size_t size = poly2Pts.size();
+				for (size_t i = 0; i < size; i++)
+				{
+					if (point_polygon_2D::pointInPolygon(poly2D->getCountour(), poly2Pts[i]) == point_polygon_2D::INSIDE) {
+						return true;
+					}
+				}
+
+				return false;
+			}
+
+			static void decreaseIndex(std::vector<size_t> &index)
+			{
+				size_t size = index.size();
+				for (size_t i = 0; i < size; i++)
+				{
+					index[i]--;
+				}
+			}
+
+			static void adjustHoles(Polygons polygons, std::vector<Polygons> &simplePolygons)
+			{
+				std::vector<ClipperLib::Polygon> contours;
+				std::vector<size_t> index;
+
+				for (size_t i = 0; i < polygons.size(); i++)
+				{
+					contours.push_back(polygons[i]);
+					index.push_back(i);
+
+					for (size_t j = i + 1; j < polygons.size(); j++)
+					{
+						if (isPolyAHole(polygons[i], polygons[j]))
+						{
+							contours.push_back(polygons[j]);
+							index.push_back(j);
+						}
+					}
+
+					Polygons simplePolygon(contours.size());
+					for (size_t j = 0; j < contours.size(); j++)
+					{
+						simplePolygon[j] = contours[j];
+					}
+
+					simplePolygons.push_back(simplePolygon);
+
+					//Sacamos los indices del vector
+					while (!index.empty())
+					{
+						polygons.erase(polygons.begin() + index[0]);
+						index.erase(index.begin() + 0);
+						decreaseIndex(index);
+					}
+
+					contours.clear();
+					index.clear();
+					i = -1;
+				}
+			}
+
+			static void complexToSimplePolygon(Polygons polygons, std::vector<Polygons> &simplePolygons)
+			{
+				simplePolygons.clear();
+				SimplifyPolygons(polygons, ClipperLib::pftEvenOdd);
+
+				adjustHoles(polygons, simplePolygons);
+			}
+
+			static void simplifyPolygons(std::vector<PolyLevel> &polygonsVector)
+			{
+				std::vector<Polygons>simplePolygons;
+				size_t size = polygonsVector.size();
+
+				while (0 < size)
+				{
+					complexToSimplePolygon(polygonsVector[0].poly, simplePolygons);
+
+					while (!simplePolygons.empty())
+					{
+						polygonsVector.push_back(PolyLevel(simplePolygons.back()));
+						simplePolygons.pop_back();
+					}
+
+					polygonsVector.erase(polygonsVector.begin() + 0);
+					size--;
+				}
+			}
+
+			static void polygonsToPolygons2D(std::vector<PolyLevel> polygonsVector, std::vector<Polygon2D*> &subdomains, const long long scale)
+			{
+				Polygon2D *poly2D = 0;
+				std::vector<Point2D*> contour;
+				size_t sizePolys = polygonsVector.size();
+				size_t sizePoly, sizeContour;
+
+				for (size_t i = 0; i < sizePolys; i++)
+				{
+					poly2D = 0;
+
+					sizePoly = polygonsVector[i].poly.size();
+					for (size_t j = 0; j < sizePoly; j++)
+					{
+						contour.clear();
+
+						sizeContour = polygonsVector[i].poly[j].size();
+						for (size_t k = 0; k < sizeContour; k++)
+						{
+							contour.push_back(new Point2D(((double)polygonsVector[i].poly[j][k].X) / ((double)scale),
+								((double)polygonsVector[i].poly[j][k].Y) / ((double)scale)));
+						}
+
+						if (j == 0)
+						{
+							poly2D = new Polygon2D(contour);
+						}
+						else if (poly2D)
+						{
+							poly2D->addHole(new Polygon2D(contour));
+						}
+					}
+
+					if (poly2D)
+					{
+						subdomains.push_back(poly2D);
+					}
+				}
+			}
+
+		public:
+			static std::vector<Polygon2D*> obtainSubdomains(Elements2D elements)
+			{
+				//std::ofstream myfile;
+				//myfile.open("Salida.txt");
+				std::ofstream result;
+				result.open("Subdomians.txt");
+
+				std::vector<Polygon2D*> subdomains;
+				std::vector<PolyLevel> polygonsVector;
+				const long long scale = 10000000000000000L;	//10000000000000000L	//1e16     //Max range = 4_611_686_018_427_387_903
+				int level = 0;
+
+				elements2DToPolygons(elements, polygonsVector, scale/*, myfile*/);
+
+				if (!polygonsVector.empty())
+				{
+					/*myfile << "Poligonos iniciales sin simplificar:" << std::endl;
+					for (int i = 0; i < polygonsVector.size(); i++)
+					{
+						myfile << polygonsVector[i].poly << std::endl;
+					}*/
+
+					// Iterar los poligonos para hacerlos simples
+					simplifyPolygons(polygonsVector);
+
+					/*myfile << "Poligonos iniciales simplificados:" << std::endl;
+					for (int i = 0; i < polygonsVector.size(); i++)
+					{
+						myfile << polygonsVector[i].poly << std::endl;
+					}*/
+
+					identifySubdomains(polygonsVector, level/*, myfile*/);
+				}
+
+				polygonsToPolygons2D(polygonsVector, subdomains, scale);
+
+				polygonsVector.clear();
+
+				result << "------------>Subdomains: ("<< subdomains.size() <<")<------------------" << std::endl;
+				for (size_t i = 0; i < subdomains.size(); i++)
+				{
+					result << (i + 1) << ":" << std::endl;
+					result << *subdomains[i] << std::endl;
+				}
+
+				return subdomains;
+			}
+	};
+}
+
+#endif

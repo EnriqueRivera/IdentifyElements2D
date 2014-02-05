@@ -1,0 +1,117 @@
+#ifndef POINT_2D_H
+#define POINT_2D_H
+
+#include <iostream>
+#include <vector>
+#include "CompareDouble.h"
+
+//para el algoritmo bentley-ottman
+enum EndPointType
+{
+	NONE,
+	P1,
+	P2
+};
+
+class Point2D
+{
+	public:
+		inline Point2D(double x, double y, EndPointType endPoint = NONE, Point2D *nextPoint = 0, int idSweepLine = -1) :
+						x(x), y(y), endPoint(endPoint), nextPoint(nextPoint), idSweepLine(idSweepLine) {}
+
+		inline ~Point2D()
+		{
+        	delete nextPoint;
+        }
+
+		inline double getX()
+		{
+			return x;
+		}
+
+		inline double getY()
+		{
+			return y;
+		}
+
+		inline int getIdSweepLine()
+		{
+			return idSweepLine;
+		}
+
+		inline int getID()
+		{
+			return id;
+		}
+
+		inline EndPointType getEndPointType()
+		{
+			return endPoint;
+		}
+
+		inline Point2D* getNextPoint()
+		{
+			return nextPoint;
+		}
+
+		inline void setIdSweepLine(int idSweepLine)
+		{
+			this->idSweepLine = idSweepLine;
+		}
+
+		inline void setID(int id)
+		{
+			this->id = id;
+		}
+
+		inline void setNextPoint(Point2D *nextPoint)
+		{
+			this->nextPoint = nextPoint;
+		}
+
+		inline void setEndPointType(EndPointType endPoint)
+		{
+			this->endPoint = endPoint;
+		}
+
+		inline void setX(double x)
+		{
+			this->x = x;
+		}
+
+		inline void setY(double y) {
+			this->y = y;
+		}
+
+		inline bool equals(Point2D *p)
+		{
+			if (!p)
+			{
+				return false;
+			}
+
+			return (isEqual(this->getX(), p->getX())) && (isEqual(this->getY(), p->getY()));
+		}
+
+		inline double distance(Point2D *p)
+		{
+			double x = p->getX() - this->getX();
+			double y = p->getY() - this->getY();
+			return std::sqrt((x * x) + (y * y));
+		}
+
+	private:
+		double x, y;
+		int idSweepLine, id;
+		EndPointType endPoint;
+		Point2D *nextPoint;
+
+		friend std::ostream& operator << (std::ostream&, const Point2D&);
+};
+
+std::ostream& operator << (std::ostream & strm, const Point2D & p)
+{
+	return strm << p.x << ", " << p.y;
+}
+#endif
+

@@ -1,0 +1,63 @@
+#ifndef ELLIPSE_2D_H
+#define ELLIPSE_2D_H
+
+#include <vector>
+#include "Point2D.h"
+#include "Polygon2D.h"
+
+class Ellipse2D
+{
+	public:
+		inline Ellipse2D(Point2D *center, double r1, double r2, std::vector<Point2D*> pointsApproach, std::vector<Point2D*> controlPoints) :
+			center(center), r1(r1), r2(r2), controlPoints(controlPoints)
+		{
+			polyApproach = new Polygon2D(pointsApproach);
+		}
+
+		inline Polygon2D* getPolyApproach()
+		{
+			return polyApproach;
+		}
+
+		inline Point2D* getCenter()
+		{
+			return center;
+		}
+
+		inline double getR1()
+		{
+			return r1;
+		}
+
+		inline double getR2()
+		{
+			return r2;
+		}
+
+		inline std::vector<Point2D*> getCtrlPts()
+		{
+			return controlPoints;
+		}
+
+		inline int getCtrlPtsCount()
+		{
+			return controlPoints.size();
+		}
+
+	private:
+		/*
+					   -0-
+					 -  |   -
+				   -	r2   -
+				  3     +-r1--1
+				   -	     -
+					 -     -
+					   -2-
+		*/
+		std::vector<Point2D*> controlPoints;
+		Polygon2D* polyApproach;
+		Point2D *center;
+		double r1, r2;
+};
+
+#endif

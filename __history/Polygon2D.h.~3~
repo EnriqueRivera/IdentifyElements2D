@@ -1,0 +1,104 @@
+#ifndef POLYGON_2D_H
+#define POLYGON_2D_H
+
+#include <vector>
+#include <stdarg.h>
+#include "Point2D.h"
+
+class Polygon2D
+{
+	public:
+		inline Polygon2D(std::vector<Point2D*> contour) : contour(contour) {}
+
+		inline Polygon2D(int n, ...)
+		{
+			va_list vl;
+			va_start(vl, n);
+			for (int i = 0; i < n; i++)
+			{
+				contour.push_back(va_arg(vl, Point2D*));
+			}
+		}
+
+		inline void addHole(Polygon2D *poly)
+		{
+			holes.push_back(poly);
+		}
+
+		inline std::vector<Point2D*> &getCountour()
+		{
+			return contour;
+		}
+
+		inline int getCountourSize()
+		{
+			return contour.size();
+		}
+
+		inline std::vector<Polygon2D*> &getHoles()
+		{
+			return holes;
+		}
+
+		inline int getHolesCount()
+		{
+			return holes.size();
+		}
+
+		inline bool hasHoles()
+		{
+			return !(holes.empty());
+		}
+
+		inline void setCtrlPts(std::vector<Point2D*> controlPoints)
+		{
+			this->controlPoints = controlPoints;
+		}
+
+		inline std::vector<Point2D*> getCtrlPts()
+		{
+			return controlPoints;
+		}
+
+		inline int getCtrlPtsCount()
+		{
+			return controlPoints.size();
+		}
+
+	private:
+		std::vector<Polygon2D*> holes;
+		std::vector<Point2D*> contour;
+		std::vector<Point2D*> controlPoints;
+
+		friend std::ostream& operator << (std::ostream&, const Polygon2D&);
+};
+
+std::ostream& operator << (std::ostream & strm, Polygon2D & poly)
+{
+	strm << "Polygon:\n[\n" ;
+	size_t size = poly.getCountour().size();
+	for (size_t i = 0; i < size; i++)
+	{
+		//strm << "\t";
+		strm << *(poly.getCountour()[i]);
+		strm << (i != (poly.getCountour().size() - 1) ? "\n " : "");
+	}
+	strm << "\n\t" << "Points = " << poly.getCountour().size() << "\t] {\n";
+
+	size = poly.getHoles().size();
+	for (size_t i = 0; i < size; i++)
+	{
+		strm << "\n   --->(Hole " << i + 1 << ")<---\n";
+		for (size_t j = 0; j < poly.getHoles().at(i)->getCountour().size(); j++)
+		{
+			//strm << "\t";
+			strm << *(poly.getHoles().at(i)->getCountour().at(j));
+			strm << (j != (poly.getHoles().at(i)->getCountour().size() - 1) ? "\n " : "");
+		}
+		strm << "\n\t" << "Points = " << poly.getHoles().at(i)->getCountour().size();
+	}
+
+	return strm << "\n}";
+}
+
+#endif

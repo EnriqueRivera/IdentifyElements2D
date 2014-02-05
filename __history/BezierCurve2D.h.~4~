@@ -1,0 +1,142 @@
+#ifndef BEZIER_CURVE_2D_H
+#define BEZIER_CURVE_2D_H
+
+#include <vector>
+#include "Point2D.h"
+#include "Polygon2D.h"
+#include "agg_curves.h"
+
+enum Degree
+{
+	DONTAPPLY = 0,
+	DEGREE2 = 2,
+	DEGREE3 = 3
+};
+
+class BezierCurve2D
+{
+	public:
+		inline BezierCurve2D(std::vector<Point2D*> controlPoints) : controlPoints(controlPoints)
+		{
+			deg = getDegree();
+			polyApproach = new Polygon2D(calculateApproach(this));
+		}
+
+		inline ~BezierCurve2D()
+		{
+			size_t size = controlPoints.size();
+			for (size_t i = 0; i < size; i++) {
+				delete controlPoints[i];
+			}
+
+			delete polyApproach;
+		}
+
+		inline Polygon2D* getPolyApproach()
+		{
+			return polyApproach;
+		}
+
+		inline std::vector<Point2D*> getCtrlPts()
+		{
+			return controlPoints;
+		}
+
+		inline int getCtrlPtsCount()
+		{
+			return controlPoints.size();
+		}
+
+		inline std::vector<Point2D*> getContour()
+		{
+			return this->polyApproach->getCountour();
+		}
+
+		inline Degree getDegree()
+		{
+			if (controlPoints.size() == 3)
+			{
+				return DEGREE2;
+			}
+			else if (controlPoints.size() == 4)
+			{
+				return DEGREE3;
+			}
+			return  DONTAPPLY;
+		}
+
+		inline bool equals(BezierCurve2D *b)
+		{
+			if (!b)
+			{
+				return false;
+			}
+
+			if (deg == DEGREE2)
+			{
+				return (controlPoints[0]->equals(b->getCtrlPts()[0]) &&
+						controlPoints[1]->equals(b->getCtrlPts()[1]) &&
+						controlPoints[2]->equals(b->getCtrlPts()[2]));
+			}
+
+			if (deg == DEGREE3)
+			{
+				return (controlPoints[0]->equals(b->getCtrlPts()[0]) &&
+						controlPoints[1]->equals(b->getCtrlPts()[1]) &&
+						controlPoints[2]->equals(b->getCtrlPts()[2]) &&
+						controlPoints[3]->equals(b->getCtrlPts()[3]));
+			}
+
+			return false;
+		}
+
+		static std::vector<Point2D*> calculateApproach(BezierCurve2D* bez)
+		{
+			//Calcular la escala
+			int scale = 100;
+			std::vector<Point2D*> pointsApproach;
+
+			if (bez->getDegree() == DEGREE2)
+			{
+				agg::curve3_div bezierGrade2(bez->controlPoints[0]->getX(), bez->controlPoints[0]->getY(),
+										     bez->controlPoints[1]->getX(), bez->controlPoints[1]->getY(),
+											 bez->controlPoints[2]->getX(), bez->controlPoints[2]->getY(),
+											 scale);
+
+				size_t size = bezierGrade2.get_m_points().size();
+				for (size_t i = 0; i < size; i++)
+				{
+					pointsApproach.push_back(new Point2D(bezierGrade2.get_m_points()[i].x, bezierGrade2.get_m_points()[i].y));
+				}
+
+				return pointsApproach;
+			}
+			else if (bez->getDegree() == DEGREE3)
+			{
+				agg::curve4_div bezierGrade3(bez->controlPoints[0]->getX(), bez->controlPoints[0]->getY(),
+										     bez->controlPoints[1]->getX(), bez->controlPoints[1]->getY(),
+											 bez->controlPoints[2]->getX(), bez->controlPoints[2]->getY(),
+											 bez->controlPoints[3]->getX(), bez->controlPoints[3]->getY(),
+											 scale);
+
+				size_t size = bezierGrade3.get_m_points().size();
+				for (size_t i = 0; i < size; i++)
+				{
+					pointsApproach.push_back(new Point2D(bezierGrade3.get_m_points()[i].x,
+															bezierGrade3.get_m_points()[i].y));
+				}
+
+				return pointsApproach;
+			}
+
+			return pointsApproach;
+		}
+
+	private:
+		std::vector<Point2D*> controlPoints;
+		Polygon2D* polyApproach;
+		Degree deg;
+
+};
+
+#endif

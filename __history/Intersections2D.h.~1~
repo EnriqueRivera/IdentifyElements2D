@@ -1,0 +1,140 @@
+﻿#ifndef INTERSECTIONS_2D_H
+#define INTERSECTIONS_2D_H
+
+#include "Point2D.h"
+#include "Segment2D.h"
+#include "CompareDouble.h"
+#include "SortPoints2D.h"
+
+namespace intersection_2D
+{
+	class Intersection2D 
+	{
+		private:
+
+			static inline void checkForEqualsPoints(Point2D *p1, Point2D *p2, Point2D *p3, Point2D *p4, Point2D *p)
+			{
+				if (p1->equals(p3) || p1->equals(p4))
+				{
+					p = p1;
+				}
+				else if (p2->equals(p4) || p2->equals(p3))
+				{
+					p = p2;
+				}
+			}
+
+			static int relativeCCW(double x1, double y1, double x2, double y2, double px, double py)
+			{
+				x2 -= x1;
+				y2 -= y1;
+				px -= x1;
+				py -= y1;
+				double ccw = px * y2 - py * x2;
+				if (isEqual(ccw, 0.0)) {
+					// The point is colinear, classify based on which side of
+					// the segment the point falls on.  We can calculate a
+					// relative value using the projection of px,py onto the
+					// segment - a negative value indicates the point projects
+					// outside of the segment in the direction of the particular
+					// endpoint used as the origin for the projection.
+					ccw = px * x2 + py * y2;
+					if (isGreaterThan(ccw, 0.0)) {
+						// Reverse the projection to be relative to the original x2,y2
+						// x2 and y2 are simply negated.
+						// px and py need to have (x2 - x1) or (y2 - y1) subtracted
+						//    from them (based on the original values)
+						// Since we really want to get a positive answer when the
+						//    point is "beyond (x2,y2)", then we want to calculate
+						//    the inverse anyway - thus we leave x2 & y2 negated.
+						px -= x2;
+						py -= y2;
+						ccw = px * x2 + py * y2;
+						if (isLowerThan(ccw, 0.0)) {
+							ccw = 0.0;
+						}
+					}
+				}
+				return (isLowerThan(ccw, 0.0)) ? -1 : (isGreaterThan(ccw, 0.0) ? 1 : 0);
+			}
+
+			static bool isALinePoint(Point2D *p1, Point2D *p2, Point2D *p3, Point2D *p4, Point2D *p)
+			{
+				return p->equals(p1) || p->equals(p2) || p->equals(p3) || p->equals(p4);
+			}
+
+			static bool areP1AndP2Equals(Point2D *p1, Point2D *p2, Point2D *p3, Point2D *p4)
+			{
+				return p1->equals(p2) || p3->equals(p4);
+			}
+
+		public:
+			static Point2D* lineIntersection(Segment2D *line1, Segment2D *line2)
+			{
+				return lineIntersection(line1->getP1(), line1->getP2(), line2->getP1(), line2->getP2());
+			}
+
+			static Point2D* lineIntersection(Point2D *p1, Point2D *p2, Point2D *p3, Point2D *p4)
+			{
+				Point2D* p = 0;
+				double mL1, mL2, bLine1, bLine2;
+
+				double x1 = p1->getX();
+				double y1 = p1->getY();
+				double x2 = p2->getX();
+				double y2 = p2->getY();
+
+				double x3 = p3->getX();
+				double y3 = p3->getY();
+				double x4 = p4->getX();
+				double y4 = p4->getY();
+
+				Segment2D::calculateSlopeAndB(p1, p2, mL1, bLine1);
+				Segment2D::calculateSlopeAndB(p3, p4, mL2, bLine2);
+
+				//checkForEqualsPoints(p1, p2, p3, p4, p);
+				/*!p && !areP1AndP2Equals(p1, p2, p3, p4) &&*/
+				if ( !isEqual(mL1, mL2) &&
+					((relativeCCW(x1, y1, x2, y2, x3, y3) * relativeCCW(x1, y1, x2, y2, x4, y4) <= 0) && 
+					(relativeCCW(x3, y3, x4, y4, x1, y1) * relativeCCW(x3, y3, x4, y4, x2, y2) <= 0)))
+				{
+					if (isEqual(mL1, INF))
+					{
+						if (isEqual(mL2, 0.0))
+						{
+							p = new Point2D(p1->getX(), p3->getY());
+						}
+
+						double y = mL2 * p1->getX() + bLine2;
+						p = new Point2D(p1->getX(), y);
+					}
+					else if (isEqual(mL2, INF))
+					{
+						if (isEqual(mL1, 0.0))
+						{
+							p = new Point2D(p3->getX(), p1->getY());
+						}
+
+						double y = mL1 * p3->getX() + bLine1;
+						p = new Point2D(p3->getX(), y);
+					}
+					else
+					{
+						double x = (bLine2 - bLine1) / (mL1 - mL2);
+						double y = mL1 * x + bLine1;
+
+						p = new Point2D(x, y);
+					}
+				}
+				
+				if (p && !isALinePoint(p1, p2, p3, p4, p))
+				{
+					return p;
+				}
+
+				return 0;
+			}
+	};
+}
+
+#endif

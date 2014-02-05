@@ -1,0 +1,87 @@
+#ifndef COMPOSED_2D_H
+#define COMPOSED_2D_H
+
+#include <iostream>
+#include <vector>
+#include "BezierCurve2D.h"
+#include "Segment2D.h"
+#include "Polygon2D.h"
+#include "Point2D.h"
+
+struct CompositeFigure
+{
+	Segment2D* seg;
+	BezierCurve2D* bez;
+
+	CompositeFigure(Segment2D* seg, BezierCurve2D* bez) : seg(seg), bez(bez) {}
+
+	~CompositeFigure()
+	{
+		delete seg;
+		delete bez;
+	}
+};
+
+class Composed2D 
+{
+	public:
+		inline Composed2D(std::vector<CompositeFigure*> compositeFigures) : compositeFigures(compositeFigures) 
+		{
+			calculateApproach();
+		}
+
+		inline ~Composed2D()
+		{
+			delete polyApproach;
+		}	
+
+		inline Polygon2D* getPolyApproach()
+		{
+			return polyApproach;
+		}
+
+		inline int compositeFiguresCount()
+		{
+			return compositeFigures.size();
+		}
+
+		inline std::vector<CompositeFigure*> getcompositeFigures()
+		{
+			return compositeFigures;
+		}
+
+	private:
+		std::vector<CompositeFigure*> compositeFigures; 
+		Polygon2D* polyApproach;
+
+		void calculateApproach()
+		{
+			std::vector<Point2D*> polyPoints;
+			std::vector<Point2D*> auxPoints;
+
+			size_t size = compositeFigures.size();
+			for (size_t i = 0; i < size; i++)
+			{
+				auxPoints.clear();
+
+				if (compositeFigures[i]->seg)
+				{
+					auxPoints.push_back(compositeFigures[i]->seg->getP1());
+					auxPoints.push_back(compositeFigures[i]->seg->getP2());
+				}
+				else if (compositeFigures[i]->bez)
+				{
+					auxPoints = compositeFigures[i]->bez->getPolyApproach()->getCountour();
+				}
+
+				size_t sizePoints = auxPoints.size();
+				for (size_t j = (0 + (i != 0 ? 1 : 0)); j < sizePoints; j++)
+				{
+					polyPoints.push_back(auxPoints[j]);
+				}
+			}
+
+			polyApproach = new Polygon2D(polyPoints);
+		}
+};
+#endif

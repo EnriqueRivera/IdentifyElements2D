@@ -1,0 +1,118 @@
+#ifndef POINT_POLYGON_2D_H
+#define POINT_POLYGON_2D_H
+
+#define _USE_MATH_DEFINES // for C++
+#include <math.h>
+
+#include "Point2D.h"
+
+namespace point_polygon_2D
+{
+	enum PointPolygon2D 
+	{
+		INSIDE,		// = 0
+		OUTSIDE,	// = 1
+		VERTEX,		// = 2
+		BOUNDARY	// = 3
+	};
+
+	double degreesAxisX(Point2D *p1, Point2D *p2) 
+	{
+		Point2D p = Point2D(p2->getX() - p1->getX(), p2->getY() - p1->getY());
+		if (isEqual(p.getX(), 0.0)) 
+		{
+			return isGreaterThan(p.getY(), 0.0) ? 90.0 : 270.0;
+		}
+		if (isLowerThan(p.getX(), 0.0)) 
+		{
+			return (atan(p.getY() / p.getX()) + M_PI) * 180.0 / M_PI;
+		}
+		if (isLowerThan(p.getY(), 0.0)) 
+		{
+			return (atan(p.getY() / p.getX()) + 2 * M_PI) * 180.0 / M_PI;
+		}
+		return (atan(p.getY() / p.getX())) * 180.0 / M_PI;
+	}
+
+	int checkSign(Point2D *p1, Point2D *p2, Point2D *p) 
+	{
+		double angleLine1 = degreesAxisX(p, p1);
+		double angleLine2 = degreesAxisX(p, p2);
+
+		if (isLowerThan((angleLine2 - angleLine1), 0.0)) 
+		{
+			angleLine2 = 360.0 - abs(angleLine2 - angleLine1);
+		}
+		else 
+		{
+			angleLine2 -= angleLine1;
+		}
+
+		if (isLowerThan(angleLine2, 180.0)) 
+		{
+			return -1;
+		}
+		return 1;
+	}
+
+	PointPolygon2D pointInPolygon(std::vector<Point2D*> polygonVertex, Point2D *p)
+	{
+		if (!isEqual(polygonVertex.at(0)->getX(), polygonVertex.at(polygonVertex.size() - 1)->getX()) ||
+			!isEqual(polygonVertex.at(0)->getY(), polygonVertex.at(polygonVertex.size() - 1)->getY()))
+		{
+			polygonVertex.push_back(polygonVertex.at(0));
+		}
+
+		for (size_t i = 0; i < polygonVertex.size(); i++) 
+		{
+			if (isEqual(p->getX(), polygonVertex.at(i)->getX()) && isEqual(p->getY(), polygonVertex.at(i)->getY())) 
+			{
+				return VERTEX;
+			}
+		}
+
+		double angulo = 0.0, auxAngulo, a, b, c;
+
+		for (size_t i = 0; i < polygonVertex.size() - 1; i++) 
+		{
+			b = sqrt(pow(p->getX() - polygonVertex.at(i)->getX(), 2) + pow(p->getY() - polygonVertex.at(i)->getY(), 2));
+			c = sqrt(pow(p->getX() - polygonVertex.at(i + 1)->getX(), 2) + pow(p->getY() - polygonVertex.at(i + 1)->getY(), 2));
+			a = sqrt(pow(polygonVertex.at(i)->getX() - polygonVertex.at(i + 1)->getX(), 2) + pow(polygonVertex.at(i)->getY() - polygonVertex.at(i + 1)->getY(), 2));
+
+			auxAngulo = ((a * a) - (b * b) - (c * c)) / (-2 * b * c);
+
+			if (isGreaterEqualThan(auxAngulo, 1.0))
+			{
+				continue;
+			}
+
+			if (isLowerEqualThan(auxAngulo, -1.0)) 
+			{
+				return BOUNDARY;
+			}
+
+			auxAngulo = (checkSign(polygonVertex.at(i), polygonVertex.at(i + 1), p)) * acos(auxAngulo) * 180.0 / M_PI;
+
+			if ( round(abs(auxAngulo)) == 180.0) 
+			{
+				return BOUNDARY;
+			} 
+			else 
+			{
+				angulo += auxAngulo;
+			}
+		}
+
+		if (round(abs(angulo)) == 360.0) 
+		{
+			return INSIDE;
+		} 
+		else 
+		{
+			return OUTSIDE;
+		}
+	}
+
+}
+
+#endif

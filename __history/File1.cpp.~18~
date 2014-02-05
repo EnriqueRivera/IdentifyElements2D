@@ -1,0 +1,195 @@
+
+#include <stdio.h>       //inlclude para usar getChar()
+#include <vector>
+
+#include "Elements2D.h"
+#include "TotalPoints2D.h"
+#include "Subdomains2D.h"
+#include "Boundaries2D.h"
+
+#include "time.h"
+
+int main(void)
+{
+	clock_t inicio;
+
+	Elements2D elements;
+	std::vector<BezierCurve2D*>bezs;
+	std::vector<Ellipse2D*>ellips;
+	std::vector<Polygon2D*>polys;
+	std::vector<Segment2D*>segms;
+	std::vector<Point2D*>pts;
+
+
+
+
+
+
+
+	// -------------------------------------------------------------------------
+	Polygon2D *polygon1 = new Polygon2D(3, new Point2D(-18,36),new Point2D(15,9),new Point2D(-20,-6));
+	polys.push_back(polygon1);
+	std::vector<Point2D*> pElyp1;
+	pElyp1.push_back(new Point2D(24.0013771057129, 8.97715854644775));
+	pElyp1.push_back(new Point2D(23.8240661621094, 10.9472389221191));
+	pElyp1.push_back(new Point2D(23.5292549133301, 12.9031896591187));
+	pElyp1.push_back(new Point2D(23.1179962158203, 14.8380079269409));
+	pElyp1.push_back(new Point2D(22.5917625427246, 16.7447681427002));
+	pElyp1.push_back(new Point2D(21.9524402618408, 18.6166458129883));
+	pElyp1.push_back(new Point2D(21.2023162841797, 20.4469375610352));
+	pElyp1.push_back(new Point2D(20.3440742492676, 22.2290935516357));
+	pElyp1.push_back(new Point2D(19.3807907104492, 23.9567317962646));
+	pElyp1.push_back(new Point2D(18.3159084320068, 25.6236724853516));
+	pElyp1.push_back(new Point2D(17.1532440185547, 27.2239418029785));
+	pElyp1.push_back(new Point2D(15.8969573974609, 28.7518157958984));
+	pElyp1.push_back(new Point2D(14.5515460968018, 30.2018241882324));
+	pElyp1.push_back(new Point2D(13.121826171875, 31.5687770843506));
+	pElyp1.push_back(new Point2D(11.6129159927368, 32.8477783203125));
+	pElyp1.push_back(new Point2D(10.0302171707153, 34.034252166748));
+	pElyp1.push_back(new Point2D(8.37939548492432, 35.123950958252));
+	pElyp1.push_back(new Point2D(6.66635990142822, 36.1129722595215));
+	pElyp1.push_back(new Point2D(4.8972430229187, 36.9977760314941));
+	pElyp1.push_back(new Point2D(3.07837390899658, 37.7751998901367));
+	pElyp1.push_back(new Point2D(1.2162709236145, 38.4424514770508));
+	pElyp1.push_back(new Point2D(-0.682403683662415, 38.9971504211426));
+	pElyp1.push_back(new Point2D(-2.61085295677185, 39.4373054504395));
+	pElyp1.push_back(new Point2D(-4.56217384338379, 39.761344909668));
+	pElyp1.push_back(new Point2D(-6.529381275177, 39.9681053161621));
+	pElyp1.push_back(new Point2D(-8.50543212890625, 40.0568504333496));
+	pElyp1.push_back(new Point2D(-9.00000190734863, 40.0605506896973));
+	pElyp1.push_back(new Point2D(-10.4832544326782, 40.0272598266602));
+	pElyp1.push_back(new Point2D(-12.4557704925537, 39.8794403076172));
+	pElyp1.push_back(new Point2D(-14.4159116744995, 39.6139221191406));
+	pElyp1.push_back(new Point2D(-16.3566646575928, 39.2316551208496));
+	pElyp1.push_back(new Point2D(-18.2710838317871, 38.7340049743652));
+	pElyp1.push_back(new Point2D(-20.1523151397705, 38.1227569580078));
+	pElyp1.push_back(new Point2D(-21.9936237335205, 37.4000930786133));
+	pElyp1.push_back(new Point2D(-23.7884178161621, 36.5686111450195));
+	pElyp1.push_back(new Point2D(-25.5302772521973, 35.631275177002));
+	pElyp1.push_back(new Point2D(-27.2129554748535, 34.5914535522461));
+	pElyp1.push_back(new Point2D(-28.8304424285889, 33.4528541564941));
+	pElyp1.push_back(new Point2D(-30.3769359588623, 32.2195663452148));
+	pElyp1.push_back(new Point2D(-31.8469123840332, 30.89599609375));
+	pElyp1.push_back(new Point2D(-33.2350997924805, 29.4868831634521));
+	pElyp1.push_back(new Point2D(-34.5365295410156, 27.997278213501));
+	pElyp1.push_back(new Point2D(-35.7465476989746, 26.432502746582));
+	pElyp1.push_back(new Point2D(-36.8608169555664, 24.7981700897217));
+	pElyp1.push_back(new Point2D(-37.875358581543, 23.1001167297363));
+	pElyp1.push_back(new Point2D(-38.7865257263184, 21.3444385528564));
+	pElyp1.push_back(new Point2D(-39.5910682678223, 19.5374031066895));
+	pElyp1.push_back(new Point2D(-40.2861061096191, 17.6854858398438));
+	pElyp1.push_back(new Point2D(-40.8691444396973, 15.7953252792358));
+	pElyp1.push_back(new Point2D(-41.3381004333496, 13.8736724853516));
+	pElyp1.push_back(new Point2D(-41.691291809082, 11.9274215698242));
+	pElyp1.push_back(new Point2D(-41.9274597167969, 9.96352291107178));
+	pElyp1.push_back(new Point2D(-42.0457534790039, 7.98902463912964));
+	pElyp1.push_back(new Point2D(-42.0605506896973, 6.99999713897705));
+	pElyp1.push_back(new Point2D(-42.0457534790039, 6.01097774505615));
+	pElyp1.push_back(new Point2D(-41.9274597167969, 4.03647899627686));
+	pElyp1.push_back(new Point2D(-41.691291809082, 2.07258105278015));
+	pElyp1.push_back(new Point2D(-41.3380966186523, 0.126321986317635));
+	pElyp1.push_back(new Point2D(-40.8691444396973, -1.79532325267792));
+	pElyp1.push_back(new Point2D(-40.2861022949219, -3.68549132347107));
+	pElyp1.push_back(new Point2D(-39.5910720825195, -5.5374002456665));
+	pElyp1.push_back(new Point2D(-38.7865257263184, -7.34443616867065));
+	pElyp1.push_back(new Point2D(-37.875358581543, -9.10011577606201));
+	pElyp1.push_back(new Point2D(-36.8608207702637, -10.798168182373));
+	pElyp1.push_back(new Point2D(-35.7465438842773, -12.4325065612793));
+	pElyp1.push_back(new Point2D(-34.5365295410156, -13.9972763061523));
+	pElyp1.push_back(new Point2D(-33.2350959777832, -15.4868869781494));
+	pElyp1.push_back(new Point2D(-31.8469123840332, -16.8959941864014));
+	pElyp1.push_back(new Point2D(-30.3769378662109, -18.2195663452148));
+	pElyp1.push_back(new Point2D(-28.8304443359375, -19.4528541564941));
+	pElyp1.push_back(new Point2D(-27.212963104248, -20.5914478302002));
+	pElyp1.push_back(new Point2D(-25.5302715301514, -21.6312789916992));
+	pElyp1.push_back(new Point2D(-23.7884197235107, -22.5686092376709));
+	pElyp1.push_back(new Point2D(-21.9936294555664, -23.4000930786133));
+	pElyp1.push_back(new Point2D(-20.1523094177246, -24.1227569580078));
+	pElyp1.push_back(new Point2D(-18.2710819244385, -24.7340049743652));
+	pElyp1.push_back(new Point2D(-16.3566665649414, -25.231653213501));
+	pElyp1.push_back(new Point2D(-14.4159173965454, -25.613920211792));
+	pElyp1.push_back(new Point2D(-12.4557647705078, -25.8794422149658));
+	pElyp1.push_back(new Point2D(-10.4832563400269, -26.0272617340088));
+	pElyp1.push_back(new Point2D(-9, -26.0605506896973));
+	pElyp1.push_back(new Point2D(-8.50543880462646, -26.0568504333496));
+	pElyp1.push_back(new Point2D(-6.5293755531311, -25.9681053161621));
+	pElyp1.push_back(new Point2D(-4.56217193603516, -25.761344909668));
+	pElyp1.push_back(new Point2D(-2.61085510253906, -25.4373054504395));
+	pElyp1.push_back(new Point2D(-0.682409524917603, -24.9971523284912));
+	pElyp1.push_back(new Point2D(1.21627640724182, -24.4424514770508));
+	pElyp1.push_back(new Point2D(3.07837557792664, -23.7751979827881));
+	pElyp1.push_back(new Point2D(4.89723777770996, -22.9977798461914));
+	pElyp1.push_back(new Point2D(6.66636514663696, -22.1129703521729));
+	pElyp1.push_back(new Point2D(8.37939739227295, -21.123950958252));
+	pElyp1.push_back(new Point2D(10.0302152633667, -20.0342540740967));
+	pElyp1.push_back(new Point2D(11.6129112243652, -18.8477840423584));
+	pElyp1.push_back(new Point2D(13.1218299865723, -17.5687732696533));
+	pElyp1.push_back(new Point2D(14.5515460968018, -16.2018241882324));
+	pElyp1.push_back(new Point2D(15.896954536438, -14.7518196105957));
+	pElyp1.push_back(new Point2D(17.153247833252, -13.2239360809326));
+	pElyp1.push_back(new Point2D(18.3159103393555, -11.6236686706543));
+	pElyp1.push_back(new Point2D(19.3807888031006, -9.95673370361328));
+	pElyp1.push_back(new Point2D(20.3440723419189, -8.22909832000732));
+	pElyp1.push_back(new Point2D(21.2023181915283, -6.44693231582642));
+	pElyp1.push_back(new Point2D(21.9524402618408, -4.61664438247681));
+	pElyp1.push_back(new Point2D(22.5917625427246, -2.74477171897888));
+	pElyp1.push_back(new Point2D(23.1179981231689, -0.838000237941742));
+	pElyp1.push_back(new Point2D(23.5292549133301, 1.09681403636932));
+	pElyp1.push_back(new Point2D(23.8240661621094, 3.05276012420654));
+	pElyp1.push_back(new Point2D(24.0013771057129, 5.02283620834351));
+	pElyp1.push_back(new Point2D(24.0605506896973, 7.0000057220459));
+	pElyp1.push_back(new Point2D(24.0605506896973, 7.0000057220459));
+	std::vector<Point2D*> puntos1;
+	puntos1.push_back(new Point2D(-9.00000190734863, 40.0605506896973));
+	puntos1.push_back(new Point2D(-42.0605506896973, 6.99999713897705));
+	puntos1.push_back(new Point2D(-9, -26.0605506896973));
+	puntos1.push_back(new Point2D(24.0605506896973, 7.0000057220459));
+	Ellipse2D *e1 = new Ellipse2D(new Point2D(-9, 7),33.0605505096331,33.0605505096331, pElyp1, puntos1);
+	Ellipse2D *e2 = new Ellipse2D(new Point2D(-8, 7),33.0605505096331,33.0605505096331, pElyp1, puntos1);
+	//ellips.push_back(e1);
+
+	Point2D *punto1 = new Point2D(5, 5);
+	Point2D *punto2 = new Point2D(6, 5);
+	Segment2D *segmento1 = new Segment2D(punto1, punto2);
+
+
+	ellips.push_back(e1);
+
+	ellips.push_back(e2);
+	inicio = clock();
+	for (int o = 0; o <= 50; o++) {
+
+			o = (o == 35) ? 36 : o;
+
+
+		std::cout << "Hola soy jose luis " << o << std::endl;
+	}
+	std::cout << "Tiempo transcurrido (segundos): " << (clock() - inicio) /
+		(double)CLOCKS_PER_SEC << std::endl;
+
+	//---------------------------------------------------------------------------------------
+	//elements.setPoints(pts);
+	//elements.setSegments(segms);
+	//elements.setPolygons(polys);
+	elements.setEllipses(ellips);
+	//elements.setBeziers(bezs);
+	//--------------------------------------------------------------------------------------
+
+	inicio = clock();
+										//namespace::clase::metodo estatico le paso elements
+	std::vector<Point2D*> totalPoints = total_points_2D::TotalPoints2D::obtainTotalPoints(elements);
+	std::cout << "Points = " << totalPoints.size() << "\t->\tTiempo transcurrido (segundos): " << (clock() - inicio)/(double)CLOCKS_PER_SEC << std::endl;
+
+	inicio = clock();
+	std::vector<Polygon2D*> subdomains = subdomains_2D::Subdomains2D::obtainSubdomains(elements);
+	std::cout << "Subdomains = " << subdomains.size() << "\t->\tTiempo transcurrido (segundos): " << (clock() - inicio)/(double)CLOCKS_PER_SEC << std::endl;
+
+	inicio = clock();
+	std::vector<Vector2D*> boundaries = boundaries_2D::Boundaries2D::obtainBoundaries(totalPoints, subdomains, elements);
+	//std::vector<Vector2D*> boundaries = boundaries_2D::Boundaries2D::obtainBoundaries(elements);
+	std::cout << "Boundaries = " << boundaries.size() << "\t->\tTiempo transcurrido (segundos): " << (clock() - inicio)/(double)CLOCKS_PER_SEC << std::endl;
+
+   getchar(); //para que no se cierre la consola
+
+	return 0;
+}
