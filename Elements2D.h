@@ -45,32 +45,32 @@ class Elements2D
 			
 		}
 
-		inline std::vector<Point2D*> getPoints() 
+		inline std::vector<Point2D*> &getPoints() 
 		{
 			return points;
 		}
 
-		inline std::vector<Segment2D*> getSegments() 
+		inline std::vector<Segment2D*> &getSegments() 
 		{
 			return segments;
 		}
 
-		inline std::vector<Polygon2D*> getPolygons() 
+		inline std::vector<Polygon2D*> &getPolygons() 
 		{
 			return polygons;
 		}
 
-		inline std::vector<Ellipse2D*> getEllipses() 
+		inline std::vector<Ellipse2D*> &getEllipses() 
 		{
 			return ellipses;
 		}
 
-		inline std::vector<BezierCurve2D*> getBeziers() 
+		inline std::vector<BezierCurve2D*> &getBeziers() 
 		{
 			return beziers;
 		}
 
-		inline std::vector<Composed2D*> getComps()
+		inline std::vector<Composed2D*> &getComps()
 		{
 			return comps;
 		}
