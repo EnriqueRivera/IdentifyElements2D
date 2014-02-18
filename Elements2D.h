@@ -45,32 +45,32 @@ class Elements2D
 			
 		}
 
-		inline std::vector<Point2D*> &getPoints() 
+		inline std::vector<Point2D*> getPoints() 
 		{
 			return points;
 		}
 
-		inline std::vector<Segment2D*> &getSegments() 
+		inline std::vector<Segment2D*> getSegments() 
 		{
 			return segments;
 		}
 
-		inline std::vector<Polygon2D*> &getPolygons() 
+		inline std::vector<Polygon2D*> getPolygons() 
 		{
 			return polygons;
 		}
 
-		inline std::vector<Ellipse2D*> &getEllipses() 
+		inline std::vector<Ellipse2D*> getEllipses() 
 		{
 			return ellipses;
 		}
 
-		inline std::vector<BezierCurve2D*> &getBeziers() 
+		inline std::vector<BezierCurve2D*> getBeziers() 
 		{
 			return beziers;
 		}
 
-		inline std::vector<Composed2D*> &getComps()
+		inline std::vector<Composed2D*> getComps()
 		{
 			return comps;
 		}
@@ -247,32 +247,80 @@ class Elements2D
 		
 		inline bool popPoint(int index)
 		{
-			this->points.erase(this->points.begin() + index);
+			if(this->points.size() <= index)
+			{
+				return false;
+			}
+			else
+			{
+				this->points.erase(this->points.begin() + index);
+				return true;
+			}
 		}
 		
 		inline bool popSegment(int index)
 		{
-			this->segments.erase(this->segments.begin() + index);
+			if(this->segments.size() <= index)
+			{
+				return false;
+			}
+			else
+			{
+				this->segments.erase(this->segments.begin() + index);
+				return true;
+			}
 		}
 		
 		inline bool popPolygon(int index)
 		{
-			this->polygons.erase(this->polygons.begin() + index);
+			if(this->polygons.size() <= index)
+			{
+				return false;
+			}
+			else
+			{
+				this->polygons.erase(this->polygons.begin() + index);
+				return true;
+			}
 		}
 		
 		inline bool popEllipse(int index)
 		{
-			this->ellipses.erase(this->ellipses.begin() + index);
+			if(this->ellipses.size() <= index)
+			{
+				return false;
+			}
+			else
+			{
+				this->ellipses.erase(this->ellipses.begin() + index);
+				return true;
+			}
 		}
 		
 		inline bool popBezier(int index)
 		{
-			this->beziers.erase(this->beziers.begin() + index);
+			if(this->beziers.size() <= index)
+			{
+				return false;
+			}
+			else
+			{
+				this->beziers.erase(this->beziers.begin() + index);
+				return true;
+			}
 		}
 		
 		inline bool popComp(int index)
 		{
-			this->comps.erase(this->comps.begin() + index);
+			if(this->comps.size() <= index)
+			{
+				return false;
+			}
+			else
+			{
+				this->comps.erase(this->comps.begin() + index);
+				return true;
+			}
 		}
 
 	private:
