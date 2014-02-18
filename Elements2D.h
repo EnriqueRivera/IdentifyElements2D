@@ -204,6 +204,46 @@ class Elements2D
 				}
 			}
 		}
+		
+		inline void clearElements()
+		{
+			this->points.clear();
+			this->segments.clear();
+			this->polygons.clear();
+			this->ellipses.clear();
+			this->beziers.clear();
+			this->comps.clear();
+		}
+		
+		inline void clearPoints()
+		{
+			this->points.clear();
+		}
+		
+		inline void clearSegments()
+		{
+			this->segments.clear();
+		}
+		
+		inline void clearPolygons()
+		{
+			this->polygons.clear();
+		}
+		
+		inline void clearEllipses()
+		{
+			this->ellipses.clear();
+		}
+		
+		inline void clearBeziers()
+		{
+			this->beziers.clear();
+		}
+		
+		inline void clearComps()
+		{
+			this->comps.clear();
+		}
 
 	private:
 
@@ -213,17 +253,17 @@ class Elements2D
 		std::vector<Point2D*> points;
 
 		/**********************************************************************************************//**
-		 * @brief	Los segmentos de línea en 2D.
+		 * @brief	Los segmentos de lï¿½nea en 2D.
 		 **************************************************************************************************/
 		std::vector<Segment2D*> segments;
 
 		/**********************************************************************************************//**
-		 * @brief	Los polígonos en 2D.
+		 * @brief	Los polï¿½gonos en 2D.
 		 **************************************************************************************************/
 		std::vector<Polygon2D*> polygons;
 
 		/**********************************************************************************************//**
-		 * @brief	Las elípses en 2D.
+		 * @brief	Las elï¿½pses en 2D.
 		 **************************************************************************************************/
 		std::vector<Ellipse2D*> ellipses;
 
