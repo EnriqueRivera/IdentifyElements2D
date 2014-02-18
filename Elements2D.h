@@ -244,6 +244,36 @@ class Elements2D
 		{
 			this->comps.clear();
 		}
+		
+		inline bool popPoint(int index)
+		{
+			this->points.erase(this->points.begin() + index);
+		}
+		
+		inline bool popSegment(int index)
+		{
+			this->segments.erase(this->segments.begin() + index);
+		}
+		
+		inline bool popPolygon(int index)
+		{
+			this->polygons.erase(this->polygons.begin() + index);
+		}
+		
+		inline bool popEllipse(int index)
+		{
+			this->ellipses.erase(this->ellipses.begin() + index);
+		}
+		
+		inline bool popBezier(int index)
+		{
+			this->beziers.erase(this->beziers.begin() + index);
+		}
+		
+		inline bool popComp(int index)
+		{
+			this->comps.erase(this->comps.begin() + index);
+		}
 
 	private:
 
